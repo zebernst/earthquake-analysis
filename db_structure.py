@@ -1,5 +1,4 @@
-import sqlalchemy
-from sqlalchemy import Column
+from sqlalchemy import Column, create_engine
 from sqlalchemy import Integer, String, Numeric, DateTime, Interval, Boolean
 from sqlalchemy.ext.declarative import declarative_base
 from datetime import datetime, timedelta
@@ -196,5 +195,5 @@ class Quake(Base):
                      type=properties.get('type'))
 
 
-engine = sqlalchemy.create_engine('sqlite:///quakes.db')
+engine = create_engine('sqlite:///quakes.db')
 Base.metadata.create_all(engine)
