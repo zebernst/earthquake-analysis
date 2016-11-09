@@ -31,6 +31,8 @@ def get_marker_color(magnitude):
     else:
         return ('ro')
 
+# Make this plot larger.
+plt.figure(figsize=(16, 12))
 
 eq_map = Basemap(projection='robin', resolution='l', area_thresh=1000.0,
                  lat_0=0, lon_0=-130)
