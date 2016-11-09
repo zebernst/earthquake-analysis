@@ -31,6 +31,7 @@ def get_marker_color(magnitude):
     else:
         return ('ro')
 
+
 # Make this plot larger.
 plt.figure(figsize=(16, 12))
 
