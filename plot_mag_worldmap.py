@@ -6,7 +6,7 @@ import numpy as np
 
 from db_structure import Base, Quake
 
-engine = create_engine('sqlite:///quakes_float.db')
+engine = create_engine('sqlite:///quakes.db')
 Base.metadata.bind = engine
 
 DBSession = sessionmaker(bind=engine)

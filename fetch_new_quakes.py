@@ -11,7 +11,7 @@ DBSession = sessionmaker(bind=engine)
 session = DBSession()
 
 api_url = 'http://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/'
-feed_url = api_url + '{}_{}.geojson'.format('all', 'month')
+feed_url = api_url + '{}_{}.geojson'.format('all', 'week')
 # levels = ["significant", "4.5", "2.5", "1.0", "all"]
 # periods = ["hour", "day", "week", "month"]
 

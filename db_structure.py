@@ -1,6 +1,5 @@
-import sqlalchemy.types as types
 from sqlalchemy import Column, create_engine
-from sqlalchemy import Integer, String, Numeric, DateTime, Interval, Boolean
+from sqlalchemy import Integer, String, Float, DateTime, Interval, Boolean
 from sqlalchemy.ext.declarative import declarative_base
 from datetime import datetime, timedelta
 from decimal import Decimal as D
@@ -65,7 +64,7 @@ class Quake(Base):
 
     id = Column(String, primary_key=True)
 
-    mag = Column(Numeric) # 4,2
+    mag = Column(Float) # 4,2
     place = Column(String)
     time = Column(DateTime)
     updated = Column(DateTime)
@@ -73,8 +72,8 @@ class Quake(Base):
     url = Column(String)
     detail = Column(String)
     felt = Column(Integer)
-    cdi = Column(Numeric) # (2, 1)
-    mmi = Column(Numeric) # (3, 2)
+    cdi = Column(Float) # (2, 1)
+    mmi = Column(Float) # (3, 2)
     alert = Column(String)
     status = Column(String)
     tsunami = Column(Boolean)
@@ -85,15 +84,15 @@ class Quake(Base):
     sources = Column(String)
     types = Column(String)
     nst = Column(Integer)
-    dmin = Column(Numeric) # (12, 9)
-    rms = Column(Numeric) # (6, 4)
-    gap = Column(Numeric) # (16,13)
+    dmin = Column(Float) # (12, 9)
+    rms = Column(Float) # (6, 4)
+    gap = Column(Float) # (16,13)
     magType = Column(String)
     type = Column(String)
 
-    longitude = Column(Numeric)
-    latitude = Column(Numeric)
-    depth = Column(Numeric)
+    longitude = Column(Float)
+    latitude = Column(Float)
+    depth = Column(Float)
 
     def __init__(self, id, longitude, latitude, depth, mag, place, time, updated, tz, url, detail, felt, cdi, mmi, alert, status, tsunami, sig, net, ids, code, sources, types, nst, dmin, rms, gap, magType, type, title):
         self.id = id
