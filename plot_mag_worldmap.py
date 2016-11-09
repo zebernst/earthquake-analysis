@@ -12,13 +12,15 @@ Base.metadata.bind = engine
 DBSession = sessionmaker(bind=engine)
 session = DBSession()
 
-lats, lons = [], []
-magnitudes = []
-for event in session.query(Quake).all():
-    if event.latitude and event.longitude and event.mag:
-        lats.append(event.latitude)
-        lons.append(event.longitude)
-        magnitudes.append(event.mag)
+q = session.query(Quake.latitude, Quake.longitude, Quake.mag)
+q = q.filter(Quake.latitude.isnot(None))
+q = q.filter(Quake.longitude.isnot(None))
+q = q.filter(Quake.mag.isnot(None))
+
+results = list(zip(*q.all()))
+lats = results[0]
+lons = results[1]
+mags = results[2]
 
 
 def get_marker_color(magnitude):
@@ -45,7 +47,7 @@ eq_map.drawmeridians(np.arange(0, 360, 30))
 eq_map.drawparallels(np.arange(-90, 90, 30))
 
 min_marker_size = 2.5
-for lon, lat, mag in zip(lons, lats, magnitudes):
+for lon, lat, mag in zip(lons, lats, mags):
     x, y = eq_map(lon, lat)
     msize = float(mag) * min_marker_size
     marker_string = get_marker_color(mag)
