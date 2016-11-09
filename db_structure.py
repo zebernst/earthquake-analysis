@@ -2,7 +2,6 @@ from sqlalchemy import Column, create_engine
 from sqlalchemy import Integer, String, Float, DateTime, Interval, Boolean
 from sqlalchemy.ext.declarative import declarative_base
 from datetime import datetime, timedelta
-from decimal import Decimal as D
 
 
 def _int(value, default=int()):
@@ -64,7 +63,7 @@ class Quake(Base):
 
     id = Column(String, primary_key=True)
 
-    mag = Column(Float) # 4,2
+    mag = Column(Float)
     place = Column(String)
     time = Column(DateTime)
     updated = Column(DateTime)
@@ -72,8 +71,8 @@ class Quake(Base):
     url = Column(String)
     detail = Column(String)
     felt = Column(Integer)
-    cdi = Column(Float) # (2, 1)
-    mmi = Column(Float) # (3, 2)
+    cdi = Column(Float)
+    mmi = Column(Float)
     alert = Column(String)
     status = Column(String)
     tsunami = Column(Boolean)
@@ -84,9 +83,9 @@ class Quake(Base):
     sources = Column(String)
     types = Column(String)
     nst = Column(Integer)
-    dmin = Column(Float) # (12, 9)
-    rms = Column(Float) # (6, 4)
-    gap = Column(Float) # (16,13)
+    dmin = Column(Float)
+    rms = Column(Float)
+    gap = Column(Float)
     magType = Column(String)
     type = Column(String)
 
