@@ -1,7 +1,9 @@
+import sqlalchemy.types as types
 from sqlalchemy import Column, create_engine
 from sqlalchemy import Integer, String, Numeric, DateTime, Interval, Boolean
 from sqlalchemy.ext.declarative import declarative_base
 from datetime import datetime, timedelta
+from decimal import Decimal as D
 
 
 def _int(value, default=int()):
