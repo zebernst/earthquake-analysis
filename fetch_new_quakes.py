@@ -21,12 +21,12 @@ lastmodified = session.query(Quake).order_by(Quake.time.desc()).first()
 r = requests.get(feed_url)
 geodata = r.json()
 
-new_quakes = []
+new_events = []
+saved_ids = set(list(zip(*session.query(Quake.id)))[0])
 for event in geodata['features']:
-    duplicate = session.query(exists().where(Quake.id == event['id'])).scalar()
-    if duplicate is not True:
-        new_quakes.append(Quake._from_json(event))
+    if event['id'] not in saved_ids:
+        new_events.append(Quake._from_json(event))
 
-session.add_all(new_quakes)
+session.add_all(new_events)
 session.commit()
-print('Added {} new events to the database!'.format(len(new_quakes)))
+print('Added {} new events to the database!'.format(len(new_events)))
