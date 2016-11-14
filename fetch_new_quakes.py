@@ -1,5 +1,5 @@
 from sqlalchemy.orm import sessionmaker
-from sqlalchemy import exists, create_engine
+from sqlalchemy import create_engine
 import requests
 import inflect
 
