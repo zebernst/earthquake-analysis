@@ -93,7 +93,10 @@ class Quake(Base):
     latitude = Column(Float)
     depth = Column(Float)
 
-    def __init__(self, id, longitude, latitude, depth, mag, place, time, updated, tz, url, detail, felt, cdi, mmi, alert, status, tsunami, sig, net, ids, code, sources, types, nst, dmin, rms, gap, magType, type, title):
+    def __init__(self, id, longitude, latitude, depth, mag, place, time,
+                 updated, tz, url, detail, felt, cdi, mmi, alert, status,
+                 tsunami, sig, net, ids, code, sources, types, nst, dmin, rms,
+                 gap, magType, type, title):
         self.id = id
         self.longitude = longitude
         self.latitude = latitude
