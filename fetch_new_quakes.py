@@ -6,7 +6,7 @@ from tqdm import tqdm
 from matplotlib.cbook import dedent
 
 # Initialize database connection
-engine = create_engine('sqlite:///quakes_test.db')
+engine = create_engine('sqlite:///quakes.db')
 Base.metadata.bind = engine
 
 DBSession = sessionmaker(bind=engine)

@@ -359,5 +359,5 @@ class Quake(Base):
                      type=properties.get('type'))
 
 
-engine = create_engine('sqlite:///quakes_test.db')
+engine = create_engine('sqlite:///quakes.db')
 Base.metadata.create_all(engine)
