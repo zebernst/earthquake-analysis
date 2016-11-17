@@ -3,7 +3,15 @@ from sqlalchemy.orm import sessionmaker
 from db_structure import Base, Feed, BoundingBox, Quake
 import inflect
 from tqdm import tqdm
-from matplotlib.cbook import dedent
+from textwrap import dedent
+
+
+def update_row(row, new_obj):
+    """Update each attribute of an existing row with new data"""
+    for column in row.__table__.columns:
+        value = getattr(row, column.name)
+        setattr(row, column.name, value)
+    return
 
 # Initialize database connection
 engine = create_engine('sqlite:///quakes.db')
@@ -12,27 +20,14 @@ Base.metadata.bind = engine
 DBSession = sessionmaker(bind=engine)
 session = DBSession()
 
-
 # Fetch new earthquake data
 feed = Feed('all', 'day')
-feed.bbox = BoundingBox._from_json(feed.data['bbox'])
+feed.bbox = BoundingBox.instantiate(feed.data['bbox'])
 session.add(feed)
 session.flush()
 
-
 # Add new events to database
-def unique_instance(session, feed, event):
-    row = session.query(Quake).get(event['id'])
-    if not row:
-        row = Quake._from_json(event)
-        return row, True
-    if row:
-        new_inst = Quake._from_json(event)
-        for column in row.__table__.columns:
-            value = getattr(new_inst, column.name)
-            setattr(row, column.name, value)
-        return row, False
-
+new, upd = 0, 0
 tqdm_args = {
     'desc': 'Updating database',
     'total': feed.count,
@@ -40,26 +35,27 @@ tqdm_args = {
     'unit': '',
     'unit_scale': True,
     'dynamic_ncols': True,
-    'bar_format': '{l_bar}{bar}| {n_fmt}/{total_fmt} '
-                  '[{elapsed}@ eta:{remaining}, {rate_fmt}]'
+    'bar_format': '{l_bar}{bar}| {n_fmt}/{total_fmt} [{elapsed}, {rate_fmt}]'
     }
 
-new, upd = 0, 0
-for event in tqdm(iterable=feed.events, **tqdm_args):
-    instance, created = unique_instance(session, feed, event)
-    feed.quakes.append(instance)
-    if created:
+for event in tqdm(feed.events, **tqdm_args):
+    quake_obj = session.query(Quake).get(event['id'])
+    if not quake_obj:
+        quake_obj = Quake.instantiate(event)
         new += 1
-    if not created:
+    if quake_obj:
+        new_inst = Quake.instantiate(event)
+        update_row(quake_obj, new_inst)
         upd += 1
-
+    feed.quakes.append(quake_obj)
 session.flush()
-session.commit()
+# TODO: add checks before actually committing to disk
+# session.commit()
 
 # Print status to console
 p = inflect.engine()
-print(dedent('''
-             {new_events} added
-             {upd_events} updated
-             '''.format(new_events=p.no('event', new),
-                        upd_events=p.no('event', upd))))
+status_str = dedent('''\
+                    {new} added
+                    {upd} updated
+                    ''')
+print(status_str.format(new=p.no('event', new), upd=p.no('event', upd)))
