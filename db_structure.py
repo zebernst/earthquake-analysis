@@ -125,12 +125,6 @@ class Feed(Base):
         """
         return self.count
 
-    def __unicode__(self):
-        return "<Feed: {lvl} {per} | {dt}>".format(
-            lvl=self.level,
-            per=self.period,
-            dt=self.time.isoformat())
-
     def __repr__(self):
         return "<Feed: {lvl} {per} | {dt}>".format(
             lvl=self.level,
@@ -188,11 +182,6 @@ class BoundingBox(Base):
     feed = relationship('Feed', back_populates='bbox')
 
     # Special methods
-    def __unicode__(self):
-        return '<BoundingBox ({0:.2f}, {1:.2f}), ({2:.2f}, {3:.2f})>'.format(
-            self.min_longitude, self.min_latitude,
-            self.max_longitude, self.max_latitude)
-
     def __repr__(self):
         return '<BoundingBox ({0:.2f}, {1:.2f}), ({2:.2f}, {3:.2f})>'.format(
             self.min_longitude, self.min_latitude,
@@ -260,9 +249,6 @@ class Quake(Base):
     feeds = relationship('Feed',
                          secondary=association_table,
                          back_populates='quakes')
-
-    def __unicode__(self):
-        return "<Quake {}>".format(self.id)
 
     def __repr__(self):
         return "<Quake {}>".format(self.id)
