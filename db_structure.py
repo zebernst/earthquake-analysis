@@ -68,6 +68,23 @@ association_table = Table('association_table', Base.metadata,
 
 
 class Feed(Base):
+    """
+    An object representing the data contained in a USGS feed.
+
+    Attributes:
+        level (str):    The severity level to filter events by.
+            The only valid values of this parameter are "significant",
+            "4.5", "2.5", "1.0", and "all".
+        period (str):   The time period that events are confined to.
+            The only valid values of this parameter are "hour", "day",
+            "week", and "month".
+        data (dict):    The JSON data for the events contained in the feed.
+        url (str):      The url that the feed was retrieved from.
+        title (str):    The title of the feed.
+        time (datetime.datetime): The time that the feed was generated.
+        api (str):      The API version of the USGS feed.
+        count (int):    The number of events contained in the feed.
+    """
     __tablename__ = 'feeds'
 
     id = Column(Integer, primary_key=True)
@@ -141,7 +158,7 @@ class Feed(Base):
     @property
     def events(self):
         """
-        A generator that allows iteration over all events in the feed.
+        generator: Iterates over all events contained in the feed.
         """
         for event in self.data["features"]:
             yield event
@@ -168,6 +185,17 @@ class Feed(Base):
 
 
 class BoundingBox(Base):
+    """
+    An object representing the area that contains all events in a given Feed.
+
+    Attributes:
+        min_longitude (float):  The western border of the bounding box.
+        max_longitude (float):  The eastern border of the bounding box.
+        min_latitude (float):   The southern border of the bounding box.
+        max_latitude (float):   The northern border of the bounding box.
+        min_depth (float):      The deepest boundary of the bounding box.
+        max_depth (float):      The shallowest boundary of the bounding box.
+    """
     __tablename__ = 'bboxes'
 
     id = Column(Integer, primary_key=True)
@@ -196,10 +224,12 @@ class BoundingBox(Base):
     def instantiate(cls, json_data):
         """
         Creates a BoundingBox from json data.
+
         Args:
             json_data (dict): The raw json data to parse.
+
         Returns:
-            Quake: a BoundingBox object.
+            BoundingBox: a BoundingBox object.
         """
         instance = cls()
         instance.min_longitude = json_data[0]
@@ -213,6 +243,41 @@ class BoundingBox(Base):
 
 
 class Quake(Base):
+    """
+    An object representing an earthquake.
+
+    Attributes:
+        id (str):           A unique identifier for the earthquake.
+        longitude (float):  Latitude of the earthquake (in degrees).
+        latitude (float):   Longitude of the earthquake (in degrees).
+        depth (float):      Depth of the earthquake (in km).
+        mag (float):        Magnitude of the earthquake.
+        title (str):        Short summary of the event (magnitude and place).
+        place (str):        The description of a region near the event.
+        time (datetime.datetime):     The time that the event occurred.
+        updated (datetime.datetime):  The time the event data was last updated.
+        tz (datetime.timedelta):      The timezone offset from UTC (in mins).
+        url (str):        The webpage corresponding to this earthquake.
+        detail (str):     The url of this event's detailed geojson feed.
+        felt (int):       The total number of felt reports submitted to DYFI?
+        cdi (float):      The maximum reported intensity for the event.
+        mmi (float):      The maximum estimated instrumental intensity.
+        alert (str):      The alert level from the PAGER impact scale.
+        status (str):     Indicates whether a human has reviewed the event.
+        tsunami (bool):   True if event was significant and in the ocean.
+        sig (int):        A number describing the significance of the event.
+        net (str):        A contributor id, denotes the preferred network.
+        code (str):       A unique code assigned by the corresponding source.
+        ids (str):        A list of unique ids assigned to the event.
+        sources (str):    A list of network contributors.
+        types (str):      A list of product types associated with the event.
+        nst (int):        Total number of stations used to determine location.
+        dmin (float):     Distance from the epicenter to the nearest station.
+        rms (float):      The root-mean-square travel time, in seconds.
+        gap (float):      The largest azimuthal gap between adjacent stations.
+        magType (str):    The method used to calculate the preferred magnitude.
+        type (str):       Type of seismic event.
+    """
     __tablename__ = 'quakes'
 
     id = Column(String, primary_key=True)
@@ -270,8 +335,10 @@ class Quake(Base):
     def instantiate(cls, json_data):
         """
         Creates a Quake from json data.
+
         Args:
             json_data (dict): The raw json data to parse.
+
         Returns:
             Quake: an Earthquake object.
         """
