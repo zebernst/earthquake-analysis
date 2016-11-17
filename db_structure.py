@@ -270,6 +270,16 @@ class Quake(Base):
     def __str__(self):
         return "<Quake {}>".format(self.id)
 
+    def __eq__(self, other):
+        if self.__class__ != other.__class__:
+            return False
+
+        self_attrs = {c.name: getattr(self, c.name)
+                      for c in self.__table__.columns}
+        other_attrs = {c.name: getattr(other, c.name)
+                       for c in other.__table__.columns}
+        return self_attrs == other_attrs
+
     @classmethod
     def instantiate(cls, json_data):
         """
