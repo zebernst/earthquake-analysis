@@ -42,7 +42,10 @@ def _bool(value, default=bool()):
         return default
 
 
-def _timestamp_ms(value):
+def _datetime(value):
+    """
+    Convert an epoch timestamp (in ms) to a datetime object.
+    """
     t = value / 1000.0
     return datetime.fromtimestamp(t)
 
@@ -85,9 +88,10 @@ class Feed(Base):
     def __init__(self, level, period):
         """
         Captures the feed with the given severity level and period.
-        ValueError is raised if either severity level or period are not
+
+        ValueError is raised if either severity level or period given are not
         supported by the USGS data feeds.  IOError is raised if the
-        response status following the request for data is not 200 OK.
+        response status following the request for data is not '200 OK'.
         """
         if level.lower() not in ALLOWED_LEVELS:
             raise ValueError("invalid severity level")
@@ -106,6 +110,7 @@ class Feed(Base):
 
         self.data = response.json()
         metadata = self.data['metadata']
+
         self.url = metadata["url"]
         self.title = metadata["title"]
         self.time = datetime.fromtimestamp(metadata["generated"] / 1000.0,
@@ -121,19 +126,22 @@ class Feed(Base):
         return self.count
 
     def __unicode__(self):
-        return "<Feed: {lvl} {per} | {dt}>".format(lvl=self.level,
-                                                   per=self.period,
-                                                   dt=self.time.isoformat())
+        return "<Feed: {lvl} {per} | {dt}>".format(
+            lvl=self.level,
+            per=self.period,
+            dt=self.time.isoformat())
 
     def __repr__(self):
-        return "<Feed: {lvl} {per} | {dt}>".format(lvl=self.level,
-                                                   per=self.period,
-                                                   dt=self.time.isoformat())
+        return "<Feed: {lvl} {per} | {dt}>".format(
+            lvl=self.level,
+            per=self.period,
+            dt=self.time.isoformat())
 
     def __str__(self):
-        return "<Feed: {lvl} {per} | {dt}>".format(lvl=self.level,
-                                                   per=self.period,
-                                                   dt=self.time.isoformat())
+        return "<Feed: {lvl} {per} | {dt}>".format(
+            lvl=self.level,
+            per=self.period,
+            dt=self.time.isoformat())
 
     # Iterators for specific event data
     @property
@@ -147,8 +155,7 @@ class Feed(Base):
     # Other methods
     def refresh(self):
         """
-        Updates this feed with new data.
-        IOError is raised if data acquisition fails.
+        Update feed with new data, raising IOError if data acquisition fails.
         """
         response = requests.get(self.url)
 
@@ -180,47 +187,51 @@ class BoundingBox(Base):
 
     feed = relationship('Feed', back_populates='bbox')
 
-    def __init__(self, min_lon, min_lat, min_dep, max_lon, max_lat, max_dep):
-        self.min_longitude = min_lon
-        self.max_longitude = max_lon
-        self.min_latitude = min_lat
-        self.max_latitude = max_lat
-        self.min_depth = min_dep
-        self.max_depth = max_dep
-
     # Special methods
     def __unicode__(self):
-        return '<BoundingBox ({0:.2f}, {1:.2f}), ({2:.2f}, {3:.2f})>'.\
-            format(self.min_longitude, self.min_latitude,
-                   self.max_longitude, self.max_latitude)
+        return '<BoundingBox ({0:.2f}, {1:.2f}), ({2:.2f}, {3:.2f})>'.format(
+            self.min_longitude, self.min_latitude,
+            self.max_longitude, self.max_latitude)
 
     def __repr__(self):
-        return '<BoundingBox ({0:.2f}, {1:.2f}), ({2:.2f}, {3:.2f})>'.\
-            format(self.min_longitude, self.min_latitude,
-                   self.max_longitude, self.max_latitude)
+        return '<BoundingBox ({0:.2f}, {1:.2f}), ({2:.2f}, {3:.2f})>'.format(
+            self.min_longitude, self.min_latitude,
+            self.max_longitude, self.max_latitude)
 
     def __str__(self):
-        return '<BoundingBox ({0:.2f}, {1:.2f}), ({2:.2f}, {3:.2f})>'.\
-            format(self.min_longitude, self.min_latitude,
-                   self.max_longitude, self.max_latitude)
+        return '<BoundingBox ({0:.2f}, {1:.2f}), ({2:.2f}, {3:.2f})>'.format(
+            self.min_longitude, self.min_latitude,
+            self.max_longitude, self.max_latitude)
 
-    @staticmethod
-    def _from_json(json_data):
-        return BoundingBox(min_lon=json_data[0],
-                           min_lat=json_data[1],
-                           min_dep=json_data[2],
-                           max_lon=json_data[3],
-                           max_lat=json_data[4],
-                           max_dep=json_data[5])
+    @classmethod
+    def instantiate(cls, json_data):
+        """
+        Creates a BoundingBox from json data.
+        Args:
+            json_data (dict): The raw json data to parse.
+        Returns:
+            Quake: a BoundingBox object.
+        """
+        instance = cls()
+        instance.min_longitude = json_data[0]
+        instance.max_longitude = json_data[1]
+        instance.min_latitude = json_data[2]
+        instance.max_latitude = json_data[3]
+        instance.min_depth = json_data[4]
+        instance.max_depth = json_data[5]
+
+        return instance
 
 
 class Quake(Base):
     __tablename__ = 'quakes'
 
     id = Column(String, primary_key=True)
-    title = Column(String)
-
+    longitude = Column(Float)
+    latitude = Column(Float)
+    depth = Column(Float)
     mag = Column(Float)
+    title = Column(String)
     place = Column(String)
     time = Column(DateTime)
     updated = Column(DateTime)
@@ -246,48 +257,9 @@ class Quake(Base):
     magType = Column(String)
     type = Column(String)
 
-    longitude = Column(Float)
-    latitude = Column(Float)
-    depth = Column(Float)
-
     feeds = relationship('Feed',
                          secondary=association_table,
                          back_populates='quakes')
-
-    def __init__(self, id, longitude, latitude, depth, mag, place, time,
-                 updated, tz, url, detail, felt, cdi, mmi, alert, status,
-                 tsunami, sig, net, ids, code, sources, types, nst, dmin, rms,
-                 gap, magType, type, title):
-        self.id = id
-        self.longitude = longitude
-        self.latitude = latitude
-        self.depth = depth
-        self.mag = mag
-        self.place = place
-        self.time = time
-        self.updated = updated
-        self.tz = tz
-        self.url = url
-        self.detail = detail
-        self.felt = felt
-        self.cdi = cdi
-        self.mmi = mmi
-        self.alert = alert
-        self.status = status
-        self.tsunami = tsunami
-        self.sig = sig
-        self.net = net
-        self.ids = ids
-        self.code = code
-        self.sources = sources
-        self.types = types
-        self.nst = nst
-        self.dmin = dmin
-        self.rms = rms
-        self.gap = gap
-        self.magType = magType
-        self.type = type
-        self.title = title
 
     def __unicode__(self):
         return "<Quake {}>".format(self.id)
@@ -298,8 +270,8 @@ class Quake(Base):
     def __str__(self):
         return "<Quake {}>".format(self.id)
 
-    @staticmethod
-    def _from_json(json_data):
+    @classmethod
+    def instantiate(cls, json_data):
         """
         Creates a Quake from json data.
         Args:
@@ -318,45 +290,45 @@ class Quake(Base):
         except KeyError:
             raise USGSException(
                 "One of the earthquakes did not have any property information")
-        return Quake(id=json_data['id'],
 
-                     longitude=_float(coordinates[0]),
-                     latitude=_float(coordinates[1]),
-                     depth=_float(coordinates[2]),
+        instance = cls()
 
-                     time=_timestamp_ms(properties.get('time')),
-                     updated=_timestamp_ms(properties.get('updated')),
-                     tz=timedelta(minutes=_int(properties.get('tz'))),
+        instance.id = json_data['id']
+        instance.longitude = _float(coordinates[0])
+        instance.latitude = _float(coordinates[1])
+        instance.mag = _float(properties.get('mag'))
 
-                     mag=_float(properties.get('mag')),
-                     place=properties.get('place', str()),
+        instance.depth = _float(coordinates[2])
+        instance.place = properties.get('place')
 
-                     title=properties.get('title', str()),
-                     url=properties.get('url', str()),
-                     detail=properties.get('detail', str()),
+        instance.time = _datetime(properties.get('time'))
+        instance.updated = _datetime(properties.get('updated'))
+        instance.tz = timedelta(minutes=_int(properties.get('tz')))
 
-                     felt=properties.get('felt'),
-                     cdi=properties.get('cdi'),
-                     mmi=properties.get('mmi'),
-                     alert=properties.get('alert'),
-                     status=properties.get('status', str()),
+        instance.title = properties.get('title')
+        instance.url = properties.get('url')
+        instance.detail = properties.get('detail')
 
-                     tsunami=_bool(properties.get('tsunami', bool())),
-                     sig=_int(properties.get('sig')),
+        instance.felt = properties.get('felt')
+        instance.cdi = properties.get('cdi')
+        instance.mmi = properties.get('mmi')
+        instance.alert = properties.get('alert')
+        instance.status = properties.get('status')
+        instance.tsunami = _bool(properties.get('tsunami'))
+        instance.sig = _int(properties.get('sig'))
+        instance.net = properties.get('net')
+        instance.ids = properties.get('ids')
+        instance.code = properties.get('code')
+        instance.sources = properties.get('sources')
+        instance.types = properties.get('types')
+        instance.nst = properties.get('nst')
+        instance.dmin = _float(properties.get('dmin'))
+        instance.rms = _float(properties.get('rms'))
+        instance.gap = _float(properties.get('gap'))
+        instance.magType = properties.get('magType')
+        instance.type = properties.get('type')
 
-                     net=properties.get('net', str()),
-                     ids=properties.get('ids', str()),
-                     code=properties.get('code', str()),
-                     sources=properties.get('sources', str()),
-                     types=properties.get('types', str()),
-                     nst=properties.get('nst'),
-
-                     dmin=_float(properties.get('dmin')),
-                     rms=_float(properties.get('rms')),
-                     gap=_float(properties.get('gap')),
-
-                     magType=properties.get('magType'),
-                     type=properties.get('type'))
+        return instance
 
 
 engine = create_engine('sqlite:///quakes.db')
