@@ -6,6 +6,10 @@ from datetime import datetime, timedelta, timezone
 import requests
 
 
+class USGSException (Exception):
+    pass
+
+# Type manipulation
 def _int(value, default=int()):
     """
     Attempt to cast *value* into an integer, returning *default* if it fails.
@@ -16,7 +20,6 @@ def _int(value, default=int()):
         return int(value)
     except ValueError:
         return default
-
 
 def _float(value, default=float()):
     """
@@ -29,7 +32,6 @@ def _float(value, default=float()):
     except ValueError:
         return default
 
-
 def _bool(value, default=bool()):
     """
     Attempt to cast *value* into a bool, returning *default* if it fails.
@@ -41,7 +43,6 @@ def _bool(value, default=bool()):
     except ValueError:
         return default
 
-
 def _datetime(value):
     """
     Convert an epoch timestamp (in ms) to a datetime object.
@@ -52,19 +53,9 @@ def _datetime(value):
 
 Base = declarative_base()
 
-
-class USGSException (Exception):
-    pass
-
-
 url = 'http://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/{}_{}.geojson'
-ALLOWED_LEVELS = {"significant", "4.5", "2.5", "1.0", "all"}
-ALLOWED_PERIODS = {"hour", "day", "week", "month"}
-
-
-association_table = Table('association_table', Base.metadata,
-                          Column('feed_id', Integer, ForeignKey('feeds.id')),
-                          Column('quake_id', String, ForeignKey('quakes.id')))
+valid_levels = {"significant", "4.5", "2.5", "1.0", "all"}
+valid_periods = {"hour", "day", "week", "month"}
 
 
 class Feed(Base):
@@ -96,11 +87,9 @@ class Feed(Base):
     title = Column(String)
     time = Column(DateTime)
     api = Column(String)
+    count = Column(Integer)
 
     bbox = relationship('BoundingBox', uselist=False, back_populates='feed')
-    quakes = relationship('Quake',
-                          secondary=association_table,
-                          back_populates='feeds')
 
     def __init__(self, level, period):
         """
@@ -110,9 +99,9 @@ class Feed(Base):
         supported by the USGS data feeds.  IOError is raised if the
         response status following the request for data is not '200 OK'.
         """
-        if level.lower() not in ALLOWED_LEVELS:
+        if level.lower() not in valid_levels:
             raise ValueError("invalid severity level")
-        if period.lower() not in ALLOWED_PERIODS:
+        if period.lower() not in valid_periods:
             raise ValueError("invalid period")
 
         feed_url = url.format(level.lower(), period.lower())
@@ -163,26 +152,6 @@ class Feed(Base):
         for event in self.data["features"]:
             yield event
 
-    # Other methods
-    def refresh(self):
-        """
-        Update feed with new data, raising IOError if data acquisition fails.
-        """
-        response = requests.get(self.url)
-
-        if response.status_code != 200:
-            message = "HTTP status code {:d}".format(response.status_code)
-            raise IOError(message)
-
-        self.data = response.json()
-        metadata = self.data['metadata']
-        self.url = metadata["url"]
-        self.title = metadata["title"]
-        self.time = datetime.fromtimestamp(metadata["generated"] / 1000.0,
-                                           tz=timezone.utc)
-        self.api = metadata["api"]
-        self.count = metadata['count']
-
 
 class BoundingBox(Base):
     """
@@ -205,8 +174,8 @@ class BoundingBox(Base):
     max_latitude = Column(Float)
     min_depth = Column(Float)
     max_depth = Column(Float)
-    feed_id = Column(Integer, ForeignKey('feeds.id'))
 
+    feed_id = Column(Integer, ForeignKey('feeds.id'))
     feed = relationship('Feed', back_populates='bbox')
 
     # Special methods
@@ -311,9 +280,13 @@ class Quake(Base):
     magType = Column(String)
     type = Column(String)
 
-    feeds = relationship('Feed',
-                         secondary=association_table,
-                         back_populates='quakes')
+    original_feed_id = Column(Integer, ForeignKey('feeds.id'))
+    modified_feed_id = Column(Integer, ForeignKey('feeds.id'))
+    original_feed = relationship('Feed', foreign_keys=[original_feed_id])
+    modified_feed = relationship('Feed', foreign_keys=[modified_feed_id])
+
+    # TODO: add 'original' feed FK and 'most recently updated' FK instead of
+    # many-to-many relationship
 
     def __repr__(self):
         return "<Quake {}>".format(self.id)
@@ -396,3 +369,4 @@ class Quake(Base):
 
 engine = create_engine('sqlite:///quakes.db')
 Base.metadata.create_all(engine)
+# TODO: drop tables instead of just blindly creating new ones
