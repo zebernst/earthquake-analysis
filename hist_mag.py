@@ -1,6 +1,7 @@
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy import create_engine
 import numpy as np
+import pandas as pd
 import itertools
 from ascii_graph import Pyasciigraph
 
@@ -14,11 +15,13 @@ session = DBSession()
 
 
 q = session.query(Quake.mag).filter(Quake.mag.isnot(None)).all()
-mags = list(itertools.chain.from_iterable(q))
+df = pd.DataFrame(data=q, columns=['mag'])
 
-(vals, bins) = np.histogram(mags, bins='scott')
-histdata = list(itertools.zip_longest(map(str, bins), vals, fillvalue=0))
+(vals, bins) = np.histogram(df, bins=np.linspace(0,10,num=100))
+hist_df = pd.DataFrame(data=list(zip(vals, bins)), columns=['count', 'bin'])
+
+histdata = list(itertools.zip_longest(map(str, hist_df['bin'].round(1)), hist_df['count'], fillvalue=0))
 
 graph = Pyasciigraph(line_length=120)
-for line in graph.graph('title', histdata):
+for line in graph.graph('Magnitude', histdata):
     print(line)

@@ -25,10 +25,10 @@ mags = results[2]
 
 def get_marker_color(magnitude):
     # Returns green for small earthquakes, yellow for moderate
-    #  earthquakes, and red for significant earthquakes.
-    if magnitude < 3.0:
+    # earthquakes, and red for significant earthquakes.
+    if magnitude < 4.5:
         return ('go')
-    elif magnitude < 5.0:
+    elif magnitude < 6.5:
         return ('yo')
     else:
         return ('ro')
