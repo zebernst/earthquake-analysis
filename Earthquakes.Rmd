@@ -25,7 +25,7 @@ world <- map_data("world")
 ## Introduction to the Data
 The following data is gathered as an observational study to track the patterns of earthquakes on a global scale. The data was provided by the U.S. Geological Survey (USGS), though due to the sheer volume of earthquakes that occur globally (upwards of 9,500 each month), the USGS only publicly provides the last month's worth of data via their GeoJSON API. One of the authors of this analysis, Zach Bernstein, has been gathering this data of his own volition for an independent project on and off since the beginning of the year, storing it into a local database on his computer. This cache of data was repurposed into a CSV file for the purpose of this project, and it contains 50,473 individual records of earthquakes in the past year. Since the data stored by Zach was only grabbed when he remembered to run the scrip to do so (which was admittedly not very often), the data we have is clearly incomplete, with many gaps in it. The following is a graph of which times of the year 2017 we have data for:
 
-```{r timeseries, echo=FALSE, warning=FALSE, fig.align='center'}
+```{r timeseries, echo=TRUE, warning=FALSE, fig.align='center'}
 ggplot(quakes, mapping = aes(x = as.Date(time), y = mag)) +
   geom_point(color='darkorchid') +
   labs(title="Time Series of Earthquake Data",
@@ -41,7 +41,7 @@ Since this data takes place within the span of about one year, we aren't able to
 
 ### Global Distribution of Earthquakes
 
-```{r map_allquakes, echo=FALSE, fig.width=9, fig.align='center'}
+```{r map_allquakes, echo=TRUE, fig.width=9, fig.align='center'}
 ggplot(world, aes(x = long, y = lat, group=group)) +
   geom_path() +
   scale_y_continuous(breaks = (-2:2) * 30) +
@@ -63,7 +63,7 @@ There is also a very high number of low-magnitude earthquakes seen in Alaska and
 
 ### Global Distribution of High-Magnitude Earthquakes
 
-```{r map_highmag, echo=FALSE, warning=FALSE, fig.width=9, fig.align='center'}
+```{r map_highmag, echo=TRUE, warning=FALSE, fig.width=9, fig.align='center'}
 quakesPower <- quakes %>%
   filter(mag > 5.5) %>% 
   mutate(power = factor(ifelse(mag < 6, 1, 
@@ -91,7 +91,7 @@ The trends of high activity areas from the first location-based graph are seen a
 
 ### Distribution of Quake Magnitude by Significant Data Contributor
 
-```{r network, echo=FALSE, message=FALSE, warning=FALSE, fig.height=7, fig.width=8, fig.align='center'}
+```{r network, echo=TRUE, message=FALSE, warning=FALSE, fig.height=7, fig.width=8, fig.align='center'}
 quakes_net_filtered <- quakes %>% 
   group_by(net) %>% 
   filter(n() > 250) %>% 
@@ -106,7 +106,7 @@ quakes_net_filtered <- quakes %>%
                                                                             ifelse(net=='uu', 'UU',
                                                                                    ifelse(net=='uw', 'UW', 'na')))))))))))  # capitalizes names of contributors for facet titles
 
-contrib_names <- c("AK [Alaska Earthquake Center]", "CI [California Integrated Seismic Network]", "HV [Hawaii Volcano Observatory]", "MB [Montana Bureau of Mines and Geology]", "NC [Northern California Seismic System]", "NN [Nevada Seismological Laboratory]", "PR [Puerto Rico Seismic Network]", "INT [Gathered from international sources]", "UU [University of Utah Seismograph Stations]", "UW [Pacific Northwest Seismic Network]")
+contrib_names <- c("AK [Alaska Earthquake Center]", "CI [California Integrated Seismic Network]", "HV [Hawaii Volcano Observatory]", "MB [Montana Bureau of Mines and Geology]", "NC [Northern California Seismic System]", "NN [Nevada Seismological Laboratory]", "PR [Puerto Rico Seismic Network]", "INT [Gathered from International Sources]", "UU [University of Utah Seismograph Stations]", "UW [Pacific Northwest Seismic Network]")
 
 ggplot(quakes_net_filtered, mapping = aes(x = mag, fill = factor(net, labels=contrib_names))) +
   geom_histogram() +
@@ -122,7 +122,7 @@ ggplot(quakes_net_filtered, mapping = aes(x = mag, fill = factor(net, labels=con
 This graph shows the distribution of earthquake magnitudes for each significant data contributor, which we specified as someone who has submitted more than 250 earthquake events to the dataset. There is a relatively high number of reports from certain contributors, specifically Alaska Earthquake Center. Overall, the amount of data from international sources is dwarfed by the amount submitted by the United States' contributors. Only the facet titled "INT" for international contains data from international sources. All other facets reflect data from the United States.
 
 
-```{r bimodal, echo=FALSE, message=FALSE, warning=FALSE, fig.align='center'}
+```{r bimodal, echo=TRUE, message=FALSE, warning=FALSE, fig.align='center'}
 ggplot(quakes, mapping = aes(x = mag)) +
   geom_density(fill='darkorchid') +
   labs(title='Density of Earthquakes by Magnitude', x='Magnitude', y='Density')+
@@ -131,7 +131,7 @@ ggplot(quakes, mapping = aes(x = mag)) +
 
 This density plot of magnitude of all of the earthquakes shows a clear bimodal distribution. In order to find out why, we examined the network contributors and came to the conclusion that the reason for the bimodal distribution was that the stations housed in the United States were reporting a very high number of low-intensity earthquakes. This is why the density graph has such a large peak centered at a magnitude of approximately 1. The international data, on the other hand, is mostly larger earthquakes. 
 
-```{r us_quakes, message=FALSE, warning=FALSE, echo=FALSE, fig.width=9, fig.align='center'}
+```{r us_quakes, message=FALSE, warning=FALSE, echo=TRUE, fig.width=9, fig.align='center'}
 quakes_us <- quakes %>% 
   filter(net!="us")  # anything from the "us" source are earthquakes from global sources aggregated by USGS
 #View(quakes_us)
@@ -154,7 +154,7 @@ This graph, of only earthquakes submitted by the United States' contributors, ma
 
 
 
-```{r us_density, warning=FALSE, message=FALSE, echo=FALSE, fig.align='center'}
+```{r us_density, warning=FALSE, message=FALSE, echo=TRUE, fig.align='center'}
 ggplot(quakes_us, mapping = aes(x = mag)) +
   geom_density(fill='darkorchid') +
   labs(title='Density of Earthquakes from the United States', x='Magnitude', y='Density')+
@@ -167,7 +167,7 @@ By recreating the previous density plot, but with this new set of data, we see a
 
 ### Land-Based versus Sea-Based Earthquakes
 
-```{r water-based, echo=FALSE, message=FALSE, warning=FALSE, fig.align='center'}
+```{r water-based, echo=TRUE, message=FALSE, warning=FALSE, fig.align='center'}
 seabased <- quakes %>% 
   filter(tsunami==1)
 
