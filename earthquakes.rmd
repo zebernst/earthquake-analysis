@@ -3,13 +3,12 @@ title: "Earthquakes"
 author: "Zach Bernstein, Zack Vanden Bergh, and Nick Hanoian"
 date: "November 30, 2017"
 output:
-  html_document:
-    code_folding: hide
-    self_contained: no
-    toc: yes
-    toc_float: yes
   github_document:
     toc: yes
+  html_document:
+    code_folding: hide
+    toc: yes
+    toc_float: yes
 ---
 
 ```{r setup, include=FALSE}

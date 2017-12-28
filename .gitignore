@@ -3,6 +3,7 @@
 __pycache__
 quakes.db
 ref_code.py
+earthquakes.html
 
 # IDE
 *.Rproj

@@ -26,7 +26,7 @@ ggplot(quakes, mapping = aes(x = as.Date(time), y = mag)) +
   theme(plot.title = element_text(hjust = 0.5))  # centers title
 ```
 
-<img src="Earthquakes_files/figure-markdown_github/timeseries-1.png" style="display: block; margin: auto;" />
+<img src="earthquakes_files/figure-markdown_github/timeseries-1.png" style="display: block; margin: auto;" />
 
 Since this data takes place within the span of about one year, we aren't able to examine any trends that take place over a long period of time, which is unfortunate considering that there are plenty of interesting trends to be seen on the geological scale of tens of years (or even tens of thousands of years). The data provided by the USGS has upwards of thirty variables that are measured for each quake, such as magnitude, intensity, latitude, longitude, depth, and so on. For this particular examination, we will be focusing on the physical location of the quakes (i.e. latitude/longitude and depth), as well as the magnitude. Each data point is measured by a sensor and automatically logged into the system, and most (if not all) are reviewed and approved by a human as well. This means that there should not be any bias in the data. Despite this checking, however, some of the data might be subject to minor inaccuracies due to technological faults (no pun intended). The data is interesting to look at because we think of earthquakes as such a rare phenomenon, but the reality is that hundreds of tiny earthquakes occur every day, most too small to be felt by humans but powerful enough to be detected by sensitive instruments. The sheer abundance of the data gives us insights into the way our world works, from where tectonic plates are to how powerful earthquakes are in the ocean versus on land.
 
@@ -49,7 +49,7 @@ ggplot(world, aes(x = long, y = lat, group=group)) +
   theme(plot.title = element_text(hjust = 0.5))
 ```
 
-<img src="Earthquakes_files/figure-markdown_github/map-all-quakes-1.png" style="display: block; margin: auto;" />
+<img src="earthquakes_files/figure-markdown_github/map-all-quakes-1.png" style="display: block; margin: auto;" />
 
 This graph shows the distribution of earthquakes around the globe. Each recorded earthquake is plotted on a Mercator Projection of the earth. The color of each point is determined by the magnitude.
 
@@ -83,7 +83,7 @@ ggplot(world, aes(x = long, y = lat, group=group)) +
   theme(plot.title = element_text(hjust = 0.5))
 ```
 
-<img src="Earthquakes_files/figure-markdown_github/map-high-mag-1.png" style="display: block; margin: auto;" />
+<img src="earthquakes_files/figure-markdown_github/map-high-mag-1.png" style="display: block; margin: auto;" />
 
 This graph shows the distribution of high magnitude earthquakes around the globe. The data has been filtered to only include earthquakes with a magnitude greater than 5.5. These observations are then mutated with a new variable that is based off of their magnitudes. Earthquakes with a magnitude between 5.5 and 6 are grouped together, ones with a magnitude between 6 and 6.5 are another group, and any earthquake with a magnitude greater than 6.5 is the final group. These groups are reflected by the color of the data points, with the lowest magnitude group being yellow, the middle group being orange, and the highest magnitude group being red.
 
@@ -120,7 +120,7 @@ ggplot(quakes_net_filtered, mapping = aes(x = mag, fill = factor(net, labels=con
   theme(plot.title = element_text(hjust = 0.5))
 ```
 
-<img src="Earthquakes_files/figure-markdown_github/network-1.png" style="display: block; margin: auto;" />
+<img src="earthquakes_files/figure-markdown_github/network-1.png" style="display: block; margin: auto;" />
 
 This graph shows the distribution of earthquake magnitudes for each significant data contributor, which we specified as someone who has submitted more than 250 earthquake events to the dataset. There is a relatively high number of reports from certain contributors, specifically Alaska Earthquake Center. Overall, the amount of data from international sources is dwarfed by the amount submitted by the United States' contributors. Only the facet titled "INT" for international contains data from international sources. All other facets reflect data from the United States.
 
@@ -131,7 +131,7 @@ ggplot(quakes, mapping = aes(x = mag)) +
   theme(plot.title = element_text(hjust = 0.5))
 ```
 
-<img src="Earthquakes_files/figure-markdown_github/bimodal-1.png" style="display: block; margin: auto;" />
+<img src="earthquakes_files/figure-markdown_github/bimodal-1.png" style="display: block; margin: auto;" />
 
 This density plot of magnitude of all of the earthquakes shows a clear bimodal distribution. In order to find out why, we examined the network contributors and came to the conclusion that the reason for the bimodal distribution was that the stations housed in the United States were reporting a very high number of low-intensity earthquakes. This is why the density graph has such a large peak centered at a magnitude of approximately 1. The international data, on the other hand, is mostly larger earthquakes.
 
@@ -152,7 +152,7 @@ ggplot(world, aes(x = long, y = lat, group=group)) +
   theme(plot.title = element_text(hjust = 0.5))
 ```
 
-<img src="Earthquakes_files/figure-markdown_github/us-quakes-1.png" style="display: block; margin: auto;" />
+<img src="earthquakes_files/figure-markdown_github/us-quakes-1.png" style="display: block; margin: auto;" />
 
 This graph, of only earthquakes submitted by the United States' contributors, makes it clear that the United States contributors are recording a very high number of low-intensity earthquakes.
 
@@ -163,7 +163,7 @@ ggplot(quakes_us, mapping = aes(x = mag)) +
   theme(plot.title = element_text(hjust = 0.5))
 ```
 
-<img src="Earthquakes_files/figure-markdown_github/us-density-1.png" style="display: block; margin: auto;" />
+<img src="earthquakes_files/figure-markdown_github/us-density-1.png" style="display: block; margin: auto;" />
 
 By recreating the previous density plot, but with this new set of data, we see a normal, bell-shaped distribution of magnitudes.
 
@@ -187,7 +187,7 @@ ggplot(quakes_midrange, mapping = aes(x = mag, fill = factor(tsunami))) +
   theme(plot.title = element_text(hjust = 0.5))
 ```
 
-<img src="Earthquakes_files/figure-markdown_github/water-based-1.png" style="display: block; margin: auto;" />
+<img src="earthquakes_files/figure-markdown_github/water-based-1.png" style="display: block; margin: auto;" />
 
 One of the variables in the data is called "tsunami", and it indicates whether or not the earthquake took place on land or at sea. Despite the name of the variable, having "tsunami" set to 1 does not mean that there was or will be a tsunami associated with the event. The above graph shows that earthquakes measured at sea have a higher magnitude on average than quakes measured on land. There are plenty of possible reasons for why this is the case - for example, it might be that the low-magnitude quakes measured at sea cannot be recorded since they're too weak to be felt by land-based measuring stations, or it could be because the international community has a tendency to report only high-magnitude quakes. Yet another reason for the phenomenon could be that the pressure of water on the fault lines provokes more intense earthquakes than the pressure of the air does on land-based fault lines. We do not know the actual reason for why this phenomenon exists in the data, only that it does. We won't be able to come to a concrete solution based on this graph alone, since correlation does not imply causation.
 
