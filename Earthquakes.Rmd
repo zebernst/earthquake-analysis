@@ -1,29 +1,39 @@
 ---
 title: "Earthquakes"
 author: "Zach Bernstein, Zack Vanden Bergh, and Nick Hanoian"
-date: "11/30/2017"
+date: "November 30, 2017"
 output:
-  pdf_document: default
-  html_document: default
+  html_document:
+    code_folding: hide
+    toc: yes
+    toc_float: yes
 ---
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
-# install.packages('maps')
-# install.packages('RSQLite)
 library(RSQLite)
 library(tidyverse)
+library(magrittr)
 library(maps)
 
 # get data from database
-con = dbConnect(RSQLite::SQLite(), dbname="quakes.db")
-quakes <- dbGetQuery(con, 'select * from quakes')
+db = dbConnect(RSQLite::SQLite(), dbname="quakes.db")
 
+# get map for plotting lat/lon data
 world <- map_data("world")
+```
+```{sql get-data, connection = db, output.var="quakes", echo=FALSE}
+-- get all earthquake records from database
+-- data accessible via `quakes` variable in R
+select * from quakes
+```
+```{r trim-data, echo=FALSE}
+#remove extraneous variables
+quakes %<>% select(-updated, -tz, -url, -detail, -original_feed_id, -modified_feed_id) 
 ```
 
 ## Introduction to the Data
-The following data is gathered as an observational study to track the patterns of earthquakes on a global scale. The data was provided by the U.S. Geological Survey (USGS), though due to the sheer volume of earthquakes that occur globally (upwards of 9,500 each month), the USGS only publicly provides the last month's worth of data via their GeoJSON API. One of the authors of this analysis, Zach Bernstein, has been gathering this data of his own volition for an independent project on and off since the beginning of the year, storing it into a local database on his computer. This cache of data was repurposed into a CSV file for the purpose of this project, and it contains 50,473 individual records of earthquakes in the past year. Since the data stored by Zach was only grabbed when he remembered to run the scrip to do so (which was admittedly not very often), the data we have is clearly incomplete, with many gaps in it. The following is a graph of which times of the year 2017 we have data for:
+The following data is gathered as an observational study to track the patterns of earthquakes on a global scale. The data was provided by the U.S. Geological Survey (USGS), though due to the sheer volume of earthquakes that occur globally (upwards of 9,500 each month), the USGS only publicly provides the last month's worth of data via their GeoJSON API. One of the authors of this analysis, Zach Bernstein, has been gathering this data of his own volition for an independent project on and off since the beginning of the year, storing it into a local database on his computer. There are `r toString(format(nrow(quakes), big.mark=",", scientific=FALSE))` individual records of earthquakes (each with `r toString(format(ncol(quakes), big.mark=",", scientific=FALSE))` variables) that are used in this analysis. Since the data stored by Zach was only grabbed when he remembered to run the scrip to do so (which was admittedly not very often), the data we have is clearly incomplete, with many gaps in it. The following is a graph of which times of the year 2017 we have data for:
 
 ```{r timeseries, echo=TRUE, warning=FALSE, fig.align='center'}
 ggplot(quakes, mapping = aes(x = as.Date(time), y = mag)) +
@@ -36,12 +46,11 @@ ggplot(quakes, mapping = aes(x = as.Date(time), y = mag)) +
 
 Since this data takes place within the span of about one year, we aren't able to examine any trends that take place over a long period of time, which is unfortunate considering that there are plenty of interesting trends to be seen on the geological scale of tens of years (or even tens of thousands of years). The data provided by the USGS has upwards of thirty variables that are measured for each quake, such as magnitude, intensity, latitude, longitude, depth, and so on. For this particular examination, we will be focusing on the physical location of the quakes (i.e. latitude/longitude and depth), as well as the magnitude. Each data point is measured by a sensor and automatically logged into the system, and most (if not all) are reviewed and approved by a human as well. This means that there should not be any bias in the data. Despite this checking, however, some of the data might be subject to minor inaccuracies due to technological faults (no pun intended). The data is interesting to look at because we think of earthquakes as such a rare phenomenon, but the reality is that hundreds of tiny earthquakes occur every day, most too small to be felt by humans but powerful enough to be detected by sensitive instruments. The sheer abundance of the data gives us insights into the way our world works, from where tectonic plates are to how powerful earthquakes are in the ocean versus on land.
 
-
 ## Data Analysis
 
 ### Global Distribution of Earthquakes
 
-```{r map_allquakes, echo=TRUE, fig.width=9, fig.align='center'}
+```{r map-all-quakes, echo=TRUE, fig.width=9, fig.align='center'}
 ggplot(world, aes(x = long, y = lat, group=group)) +
   geom_path() +
   scale_y_continuous(breaks = (-2:2) * 30) +
@@ -63,17 +72,20 @@ There is also a very high number of low-magnitude earthquakes seen in Alaska and
 
 ### Global Distribution of High-Magnitude Earthquakes
 
-```{r map_highmag, echo=TRUE, warning=FALSE, fig.width=9, fig.align='center'}
-quakesPower <- quakes %>%
+```{r map-high-mag, echo=TRUE, warning=FALSE, fig.width=9, fig.align='center'}
+quakes_power <- quakes %>%
   filter(mag > 5.5) %>% 
-  mutate(power = factor(ifelse(mag < 6, 1, 
-                          ifelse(mag < 6.5, 2, 3))))
+  mutate(power = factor(case_when(
+    mag < 6   ~ 1,
+    mag < 6.5 ~ 2,
+    TRUE ~ 3 # default case
+  )))
 
 ggplot(world, aes(x = long, y = lat, group=group)) +
   geom_path() +
   scale_y_continuous(breaks = (-2:2) * 30) +
   scale_x_continuous(breaks = (-4:4) * 45) +
-  geom_point(data = quakesPower, 
+  geom_point(data = quakes_power, 
              mapping = aes(x=longitude, y=latitude, group=NULL, 
                            color=power), 
              alpha=0.7, size=3) +
@@ -87,7 +99,7 @@ ggplot(world, aes(x = long, y = lat, group=group)) +
 
 This graph shows the distribution of high magnitude earthquakes around the globe. The data has been filtered to only include earthquakes with a magnitude greater than 5.5. These observations are then mutated with a new variable that is based off of their magnitudes. Earthquakes with a magnitude between 5.5 and 6 are grouped together, ones with a magnitude between 6 and 6.5 are another group, and any earthquake with a magnitude greater than 6.5 is the final group. These groups are reflected by the color of the data points, with the lowest magnitude group being yellow, the middle group being orange, and the highest magnitude group being red.
 
-The trends of high activity areas from the first location-based graph are seen again. The Ring of Fire area, especially around Indonesia and  Papa New Guinea, has a large number of high-intensity earthquakes, as does the western coast of the Americas. The large number of earthquakes that were previously seen across the United States are no longer seen, because they were all low magnitude earthquakes.
+The trends of high activity areas from the first location-based graph are seen again. The Ring of Fire area, especially around Indonesia and Papua New Guinea, has a large number of high-intensity earthquakes, as does the western coast of the Americas. The large number of earthquakes that were previously seen across the United States are no longer seen, because they were all low magnitude earthquakes.
 
 ### Distribution of Quake Magnitude by Significant Data Contributor
 
@@ -95,18 +107,22 @@ The trends of high activity areas from the first location-based graph are seen a
 quakes_net_filtered <- quakes %>% 
   group_by(net) %>% 
   filter(n() > 250) %>% 
-  mutate(netNamed = ifelse(net=='ak', 'AK',
-                           ifelse(net=='ci', 'CI',
-                                  ifelse(net=='hv', 'HV',
-                                         ifelse(net=='mb', 'MB',
-                                                ifelse(net=='nc', 'NC',
-                                                       ifelse(net=='nn', 'NN',
-                                                              ifelse(net=='pr', 'PR',
-                                                                     ifelse(net=='us', 'INT',
-                                                                            ifelse(net=='uu', 'UU',
-                                                                                   ifelse(net=='uw', 'UW', 'na')))))))))))  # capitalizes names of contributors for facet titles
+  mutate(netNamed = case_when( # capitalize network contributors for facet titles
+    net == "us" ~ "INT", # denote USGS source
+    net %in% c("ak", "ci", "hv", "mb", "nc", "nn", "pr", "uu", "uw") ~ toupper(net), # capitalize
+    TRUE ~ "N/A" # default case
+  ))
 
-contrib_names <- c("AK [Alaska Earthquake Center]", "CI [California Integrated Seismic Network]", "HV [Hawaii Volcano Observatory]", "MB [Montana Bureau of Mines and Geology]", "NC [Northern California Seismic System]", "NN [Nevada Seismological Laboratory]", "PR [Puerto Rico Seismic Network]", "INT [Gathered from International Sources]", "UU [University of Utah Seismograph Stations]", "UW [Pacific Northwest Seismic Network]")
+contrib_names <- c("AK [Alaska Earthquake Center]", 
+                   "CI [California Integrated Seismic Network]", 
+                   "HV [Hawaii Volcano Observatory]", 
+                   "MB [Montana Bureau of Mines and Geology]", 
+                   "NC [Northern California Seismic System]", 
+                   "NN [Nevada Seismological Laboratory]", 
+                   "PR [Puerto Rico Seismic Network]", 
+                   "INT [Gathered from International Sources]", 
+                   "UU [University of Utah Seismograph Stations]", 
+                   "UW [Pacific Northwest Seismic Network]")
 
 ggplot(quakes_net_filtered, mapping = aes(x = mag, fill = factor(net, labels=contrib_names))) +
   geom_histogram() +
@@ -114,8 +130,6 @@ ggplot(quakes_net_filtered, mapping = aes(x = mag, fill = factor(net, labels=con
   labs(title='Sources of Earthquake Data by Magnitude and Frequency',
        x='Magnitude', y='Count', fill='Contributor')+
   theme(plot.title = element_text(hjust = 0.5))
-  
-  
 ```
 
 
@@ -131,10 +145,9 @@ ggplot(quakes, mapping = aes(x = mag)) +
 
 This density plot of magnitude of all of the earthquakes shows a clear bimodal distribution. In order to find out why, we examined the network contributors and came to the conclusion that the reason for the bimodal distribution was that the stations housed in the United States were reporting a very high number of low-intensity earthquakes. This is why the density graph has such a large peak centered at a magnitude of approximately 1. The international data, on the other hand, is mostly larger earthquakes. 
 
-```{r us_quakes, message=FALSE, warning=FALSE, echo=TRUE, fig.width=9, fig.align='center'}
+```{r us-quakes, message=FALSE, warning=FALSE, echo=TRUE, fig.width=9, fig.align='center'}
 quakes_us <- quakes %>% 
   filter(net!="us")  # anything from the "us" source are earthquakes from global sources aggregated by USGS
-#View(quakes_us)
 
 ggplot(world, aes(x = long, y = lat, group=group)) +
   geom_path() +
@@ -154,7 +167,7 @@ This graph, of only earthquakes submitted by the United States' contributors, ma
 
 
 
-```{r us_density, warning=FALSE, message=FALSE, echo=TRUE, fig.align='center'}
+```{r us-density, warning=FALSE, message=FALSE, echo=TRUE, fig.align='center'}
 ggplot(quakes_us, mapping = aes(x = mag)) +
   geom_density(fill='darkorchid') +
   labs(title='Density of Earthquakes from the United States', x='Magnitude', y='Density')+

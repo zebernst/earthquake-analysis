@@ -3,3 +3,8 @@
 __pycache__
 quakes.db
 ref_code.py
+
+# IDE
+*.Rproj
+.Rproj.user
+.idea/
