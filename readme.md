@@ -16,6 +16,7 @@ plots each earthquake on a map where the point's color corresponds to its magnit
 *note: runs very slowly*
 
 ## R
+*created for my STAT 087 - Intro to Data Science course*
 
 ##### [earthquakes.md](earthquakes.md)
 a report on trends found in the data gathered. output tailored specially for github.
