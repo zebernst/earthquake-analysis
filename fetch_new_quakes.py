@@ -2,7 +2,6 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from db_structure import Base, Feed, BoundingBox, Quake, valid_levels, valid_periods
 from tqdm import tqdm
-import inflect
 import argparse
 
 # Initialize database connection

@@ -9,3 +9,7 @@ earthquakes.html
 *.Rproj
 .Rproj.user
 .idea/
+
+# R
+.RData
+.Rhistory
