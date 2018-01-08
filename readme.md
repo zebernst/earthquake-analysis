@@ -11,10 +11,6 @@ run `python fetch_new_quakes.py -l LEVEL -p PERIOD` to fetch new data from the U
 ##### [hist_mag.py](hist_mag.py)
 plots a rough histogram showing the magnitudes of the earthquakes contained in the sqlite database. outputs to the command line.
 
-##### [plot_mag_worldmap.py](plot_mag_worldmap.py)
-plots each earthquake on a map where the point's color corresponds to its magnitude. uses matplotlib.  
-*note: runs very slowly*
-
 ## R
 *created for my STAT 087 - Intro to Data Science course*
 
